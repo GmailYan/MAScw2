@@ -1,0 +1,59 @@
+package jadeCW;
+
+
+
+public class RequestAppointment extends CyclicBehaviour {
+
+	private int step = 1;
+	private PatientAgent parentAgent; 
+
+	@Override
+	public void action() {
+		this.parentAgent = ((PatientAgent) this.myAgent);
+		switch (step) {
+		case 1:
+			if (parentAgent.getHospitalAgent() != null) {
+				step++;
+				break;
+			}
+		case 2:
+			if (((PatientAgent) this.myAgent).getAppointment() != 0) {
+				step +=2;				
+			} else {
+				ACLMessage msg = new ACLMessage(ACLMessage.REQUEST);
+				msg.addReceiver(parentAgent.getHospitalAgent().getName());
+				msg.setLanguage("English");
+				msg.setContent("Appointment Request");
+				this.myAgent.send(msg);				
+				step++;
+			}
+			break;
+		case 3:
+			ACLMessage receivedMsg = this.myAgent.receive();
+			if(receivedMsg != null){
+				String allocation = receivedMsg.getContent();
+				if(!allocation.equals("0")){
+					this.parentAgent.setAppointment(Integer.parseInt(allocation));
+					step++;
+				}else{
+					step +=2;
+				}
+			}else{
+				step +=2;
+			}
+			break;
+		case 4:
+			//already allocated
+			break;
+		case 5:
+			//allocation failed
+		
+		}
+	}
+
+	@Override
+	public boolean done() {
+		return false;
+	}
+
+}
